@@ -1,0 +1,45 @@
+# Inference Configuration
+
+# Model Configuration
+model:
+  model_path: "./models/production/model.onnx"
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  max_detections: 100
+
+# Input Configuration
+input:
+  image_size: 640
+  normalize: true
+
+# Output Configuration
+output:
+  draw_boxes: true
+  box_color: [0, 255, 0]
+  box_thickness: 2
+  save_results: true
+  output_dir: "./results"
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  cors_origins:
+    - "http://localhost:3000"
+  max_file_size_mb: 10
+
+# Monitoring
+monitoring:
+  enable_prometheus: true
+  prometheus_port: 9090
+
+# Defect Classes
+classes:
+  0: "good"
+  1: "defect"
+
+# Performance Targets
+targets:
+  max_inference_time_ms: 100
+  min_confidence: 0.5

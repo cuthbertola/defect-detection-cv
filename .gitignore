@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+venv/
+env/
+*.egg-info/
+
+# Data & Models
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+models/experiments/*
+models/checkpoints/*
+models/production/*.pt
+*.onnx
+
+# MLflow & DVC
+mlruns/
+mlartifacts/
+.dvc/cache
+.dvc/tmp
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Testing
+.pytest_cache/
+.coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# React
+frontend/node_modules/
+frontend/build/
