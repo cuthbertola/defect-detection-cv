@@ -1,0 +1,16 @@
+# YOLOv8 Dataset Configuration
+
+# Dataset path (absolute)
+path: /Users/olawalebadekale/defect-detection-cv/data/processed
+
+# Splits
+train: images/train
+val: images/val
+
+# Classes
+names:
+  0: good
+  1: defect
+
+# Number of classes
+nc: 2

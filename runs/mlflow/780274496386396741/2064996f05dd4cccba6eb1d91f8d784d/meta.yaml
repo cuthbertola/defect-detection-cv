@@ -1,0 +1,14 @@
+artifact_uri: /Users/olawalebadekale/defect-detection-cv/runs/mlflow/780274496386396741/2064996f05dd4cccba6eb1d91f8d784d/artifacts
+end_time: 1763663354449
+entry_point_name: ''
+experiment_id: '780274496386396741'
+lifecycle_stage: active
+run_id: 2064996f05dd4cccba6eb1d91f8d784d
+run_name: yolov8_run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763662997161
+status: 3
+tags: []
+user_id: olawalebadekale
