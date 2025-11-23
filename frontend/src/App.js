@@ -7,6 +7,9 @@ function App() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showAnnotated, setShowAnnotated] = useState(true);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -47,7 +50,7 @@ function App() {
     formData.append('file', selectedFile);
 
     try {
-      const response = await fetch('http://localhost:8000/detect', {
+      const response = await fetch(`${API_URL}/detect?visualize=true`, {
         method: 'POST',
         body: formData,
       });
@@ -70,14 +73,12 @@ function App() {
 
   return (
     <div className="App">
-      {/* Animated Background */}
       <div className="background-animation">
         <div className="circle circle-1"></div>
         <div className="circle circle-2"></div>
         <div className="circle circle-3"></div>
       </div>
 
-      {/* Header */}
       <header className="App-header">
         <div className="logo-container">
           <div className="logo-icon">👁️</div>
@@ -95,10 +96,8 @@ function App() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="main-container">
         
-        {/* Upload Section */}
         <div className="content-card upload-card">
           <div className="card-header">
             <h2>📤 Upload Image</h2>
@@ -121,7 +120,22 @@ function App() {
               </div>
             ) : (
               <div className="preview-container">
-                <img src={preview} alt="Preview" className="preview-image" />
+                <img 
+                  src={result && showAnnotated && result.annotated_image ? result.annotated_image : preview} 
+                  alt="Preview" 
+                  className="preview-image" 
+                />
+                {result && result.annotated_image && (
+                  <button 
+                    className="toggle-button" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAnnotated(!showAnnotated);
+                    }}
+                  >
+                    {showAnnotated ? '👁️ Original' : '🔍 Annotated'}
+                  </button>
+                )}
                 <button className="reset-button" onClick={(e) => {
                   e.stopPropagation();
                   handleReset();
@@ -152,14 +166,13 @@ function App() {
               </>
             ) : (
               <>
-                <span className="button-icon">��</span>
+                <span className="button-icon">🔍</span>
                 Detect Defects
               </>
             )}
           </button>
         </div>
 
-        {/* Results Section */}
         {result && (
           <div className={`content-card results-card ${result.has_defect ? 'defect-result' : 'good-result'}`}>
             <div className="card-header">
@@ -186,12 +199,10 @@ function App() {
               </div>
 
               <div className="metric-card">
-                <div className="metric-icon">📋</div>
+                <div className="metric-icon">⚡</div>
                 <div className="metric-content">
-                  <span className="metric-label">Status</span>
-                  <span className="metric-value status-badge">
-                    {result.status}
-                  </span>
+                  <span className="metric-label">Inference Time</span>
+                  <span className="metric-value">{result.inference_time_ms?.toFixed(1)}ms</span>
                 </div>
               </div>
 
@@ -223,7 +234,6 @@ function App() {
         )}
       </div>
 
-      {/* Stats Footer */}
       <footer className="stats-footer">
         <div className="stat-item">
           <span className="stat-icon">⚡</span>

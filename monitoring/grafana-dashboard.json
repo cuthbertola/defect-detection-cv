@@ -1,0 +1,81 @@
+{
+  "dashboard": {
+    "title": "Defect Detection System",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Requests",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(defect_detection_requests_total)"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Defects Detected",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "defect_detection_defects_found"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Quality Passed",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "defect_detection_quality_passed"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Avg Inference Time",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(defect_detection_inference_seconds_sum[5m]) / rate(defect_detection_inference_seconds_count[5m])"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Requests Over Time",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(defect_detection_requests_total[1m])",
+            "legendFormat": "{{status}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 6,
+        "title": "Inference Time Distribution",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(defect_detection_inference_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      }
+    ],
+    "refresh": "5s",
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "timezone": "browser"
+  }
+}
