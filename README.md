@@ -69,7 +69,7 @@ A full-stack AI application that detects manufacturing defects in real-time usin
 ### **1. Clone & Start**
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/defect-detection-cv.git
+git clone https://github.com/cuthbertola/defect-detection-cv.git
 cd defect-detection-cv
 
 # Start all services
@@ -351,10 +351,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 👤 Author
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Portfolio: [yourportfolio.com](https://yourportfolio.com)
+**Olawale Badekale**
+- GitHub: [@cuthbertola](https://github.com/cuthbertola)
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/badekaleolawale)
+- Portfolio: [https://github.com/cuthbertola](https://https://github.com/cuthbertola)
 
 ---
 
