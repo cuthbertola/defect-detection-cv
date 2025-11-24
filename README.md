@@ -8,7 +8,7 @@
 
 > Production-grade computer vision system for manufacturing quality control with YOLOv8, ONNX optimization, and real-time bounding box visualization.
 
-![Defect Detection Demo](assets/demo.png)
+![Defect Detection Demo](assets/demo.webp)
 
 ---
 
