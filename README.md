@@ -1,4 +1,4 @@
-# 🔍 Real-Time Defect Detection System
+#  Real-Time Defect Detection System
 
 [![Python](https://img.shields.io/badge/Python-3.9-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green.svg)](https://fastapi.tiangolo.com/)
@@ -12,20 +12,20 @@
 
 ---
 
-## 🎯 Project Overview
+##  Project Overview
 
 A full-stack AI application that detects manufacturing defects in real-time using YOLOv8 object detection, optimized with ONNX Runtime for blazing-fast inference. Features include bounding box visualization, Prometheus metrics, and a modern React dashboard.
 
 ### **Key Achievements**
-- ⚡ **16.7ms inference time** (6x faster than 100ms target)
-- 💾 **11.7MB model size** (4x smaller than 50MB target)
-- 🎯 **95-98% confidence** scores on detection
+-  **16.7ms inference time** (6x faster than 100ms target)
+-  **11.7MB model size** (4x smaller than 50MB target)
+-  **95-98% confidence** scores on detection
 - 📦 **Fully containerized** with Docker Compose
 - 📊 **Production monitoring** with Prometheus & Grafana
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   React Frontend                     │
@@ -100,15 +100,15 @@ docker-compose logs -f
 
 | Metric | Target | Achieved | Status |
 |--------|--------|----------|--------|
-| **Inference Time** | <100ms | 16.7ms | ✅ **6x better** |
-| **Model Size** | <50MB | 11.7MB | ✅ **4x better** |
-| **API Response** | <150ms | ~20ms | ✅ **7x better** |
-| **Accuracy** | 92%+ | 95-98% | ✅ **Exceeded** |
-| **Throughput** | 10 req/s | 60+ req/s | ✅ **6x better** |
+| **Inference Time** | <100ms | 16.7ms |  **6x better** |
+| **Model Size** | <50MB | 11.7MB |  **4x better** |
+| **API Response** | <150ms | ~20ms |  **7x better** |
+| **Accuracy** | 92%+ | 95-98% |  **Exceeded** |
+| **Throughput** | 10 req/s | 60+ req/s |  **6x better** |
 
 ---
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 ### **Machine Learning**
 - **YOLOv8n** - Object detection model
@@ -136,7 +136,7 @@ docker-compose logs -f
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 ```
 defect-detection-cv/
 ├── backend/
@@ -208,7 +208,7 @@ python3 backend/app/models/optimizer.py
 
 ---
 
-## 📈 API Endpoints
+##  API Endpoints
 
 ### **Health Check**
 ```bash
@@ -243,9 +243,9 @@ GET /metrics
 
 ---
 
-## 🎨 Features
+##  Features
 
-### ✅ **Completed**
+###  **Completed**
 - [x] YOLOv8 model training (50 epochs)
 - [x] ONNX optimization (6x faster)
 - [x] FastAPI REST API
@@ -258,7 +258,7 @@ GET /metrics
 - [x] Health check endpoints
 - [x] Comprehensive logging
 
-### 🔜 **Future Enhancements**
+###  **Future Enhancements**
 - [ ] Multi-class defect detection
 - [ ] Real MVTec AD dataset integration
 - [ ] Batch processing API
@@ -271,7 +271,7 @@ GET /metrics
 
 ---
 
-## 🧪 Testing
+##  Testing
 ```bash
 # Test health endpoint
 curl http://localhost:8000/health
@@ -309,7 +309,7 @@ Import `monitoring/grafana-dashboard.json` for pre-configured visualizations.
 
 ---
 
-## 🚢 Deployment
+##  Deployment
 
 ### **Docker Compose (Recommended)**
 ```bash
@@ -343,13 +343,13 @@ Contributions welcome! Please:
 
 ---
 
-## 📄 License
+##  License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👤 Author
+##  Author
 
 **Olawale Badekale**
 - GitHub: [@cuthbertola](https://github.com/cuthbertola)
@@ -373,5 +373,5 @@ For questions or support, please open an issue or contact me directly.
 
 ---
 
-**⭐ If you find this project useful, please star it on GitHub!**
+** If you find this project useful, please star it on GitHub!**
 
