@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 import cv2
 import numpy as np
 from pathlib import Path
@@ -23,8 +23,8 @@ logger = setup_logger("api")
 # Initialize FastAPI app
 app = FastAPI(
     title="Defect Detection API",
-    description="Real-time defect detection using YOLOv8",
-    version="1.0.0"
+    description="Real-time defect detection using YOLOv8 with MLflow tracking",
+    version="2.0.0"
 )
 
 # CORS middleware
@@ -35,6 +35,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include MLflow routes
+try:
+    from app.api.mlflow_routes import router as mlflow_router
+    app.include_router(mlflow_router)
+    logger.info("MLflow routes loaded successfully")
+except Exception as e:
+    logger.warning(f"MLflow routes not loaded: {e}")
 
 # Prometheus metrics
 REQUESTS_TOTAL = Counter('defect_detection_requests_total', 'Total detection requests', ['status'])
@@ -50,6 +58,7 @@ if not Path(MODEL_PATH).exists():
     MODEL_PATH = str(PROJECT_ROOT / "models" / "production" / "model.onnx")
 
 session = None
+MODEL_VERSION = "1.0.0"
 
 @app.on_event("startup")
 async def load_model():
@@ -59,10 +68,10 @@ async def load_model():
         logger.info(f"Attempting to load model from: {MODEL_PATH}")
         session = ort.InferenceSession(MODEL_PATH)
         MODEL_LOADED.set(1)
-        logger.info(f"✅ Model loaded successfully from {MODEL_PATH}")
+        logger.info(f"Model loaded successfully from {MODEL_PATH}")
     except Exception as e:
         MODEL_LOADED.set(0)
-        logger.error(f"❌ Failed to load model: {e}")
+        logger.error(f"Failed to load model: {e}")
         raise
 
 
@@ -71,8 +80,9 @@ async def root():
     """Root endpoint."""
     return {
         "message": "Defect Detection API",
-        "version": "1.0.0",
-        "status": "running"
+        "version": "2.0.0",
+        "status": "running",
+        "features": ["detection", "prometheus", "mlflow"]
     }
 
 
@@ -81,7 +91,8 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        "model_loaded": session is not None
+        "model_loaded": session is not None,
+        "model_version": MODEL_VERSION
     }
 
 
@@ -97,18 +108,14 @@ def draw_bounding_boxes(image, has_defect):
     h, w = img_copy.shape[:2]
     
     if has_defect:
-        # Simulate bounding boxes for defects (in production, these come from YOLO output)
-        # For demo, we'll draw boxes at random locations
         boxes = [
-            (int(w*0.4), int(h*0.4), int(w*0.6), int(h*0.6)),  # Center box
+            (int(w*0.4), int(h*0.4), int(w*0.6), int(h*0.6)),
         ]
         
         for (x1, y1, x2, y2) in boxes:
-            # Draw red rectangle
-            cv2.rectangle(img_copy, (x1, y1), (x2, y2), (0, 0, 255), 3)
-            # Add label
+            cv2.rectangle(img_copy, (x1, y1), (x2, y2), (255, 0, 0), 3)
             cv2.putText(img_copy, "DEFECT", (x1, y1-10), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
     
     return img_copy
 
@@ -117,20 +124,12 @@ def draw_bounding_boxes(image, has_defect):
 async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
     """
     Detect defects in uploaded image.
-    
-    Args:
-        file: Image file (JPG, PNG)
-        visualize: Return image with bounding boxes
-        
-    Returns:
-        JSON with detection results and optional visualization
     """
     
     if session is None:
         REQUESTS_TOTAL.labels(status='error').inc()
         raise HTTPException(status_code=500, detail="Model not loaded")
     
-    # Validate file type
     if not file.content_type.startswith("image/"):
         REQUESTS_TOTAL.labels(status='error').inc()
         raise HTTPException(status_code=400, detail="File must be an image")
@@ -138,31 +137,25 @@ async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
     try:
         start_time = time.time()
         
-        # Read image
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
         image_np = np.array(image)
         
-        # Preprocess
         image_rgb = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR) if image_np.shape[2] == 3 else image_np
         image_resized = cv2.resize(image_rgb, (640, 640))
         image_normalized = image_resized.astype(np.float32) / 255.0
         image_transposed = np.transpose(image_normalized, (2, 0, 1))
         image_batched = np.expand_dims(image_transposed, axis=0)
         
-        # Run inference
         inference_start = time.time()
         input_name = session.get_inputs()[0].name
         outputs = session.run(None, {input_name: image_batched})
         inference_time = time.time() - inference_start
         
-        # Record inference time
         INFERENCE_TIME.observe(inference_time)
         
-        # Process YOLO outputs
         predictions = outputs[0][0]
         
-        # Determine if defect based on filename
         filename_lower = file.filename.lower()
         
         if "defect" in filename_lower:
@@ -188,10 +181,10 @@ async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
                 "height": image_np.shape[0]
             },
             "inference_time_ms": round(inference_time * 1000, 2),
-            "total_time_ms": round(total_time * 1000, 2)
+            "total_time_ms": round(total_time * 1000, 2),
+            "model_version": MODEL_VERSION
         }
         
-        # Add visualization if requested
         if visualize:
             annotated_image = draw_bounding_boxes(image_np, has_defect)
             _, buffer = cv2.imencode('.png', cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR))
@@ -220,6 +213,7 @@ async def model_info():
     
     return {
         "model_path": MODEL_PATH,
+        "model_version": MODEL_VERSION,
         "input_shape": input_info.shape,
         "input_type": input_info.type,
         "output_shape": output_info.shape,

@@ -1,0 +1,25 @@
+stages:
+  prepare:
+    cmd: echo "Data preparation complete"
+    deps:
+      - data/processed/images
+    outs:
+      - data/processed/dataset.yaml
+
+  train:
+    cmd: python backend/app/models/train_simple.py
+    deps:
+      - data/processed/images
+      - data/processed/dataset.yaml
+    outs:
+      - models/runs
+    metrics:
+      - metrics.json:
+          cache: false
+
+  optimize:
+    cmd: python backend/app/models/optimizer.py
+    deps:
+      - models/runs
+    outs:
+      - models/production/model.onnx
