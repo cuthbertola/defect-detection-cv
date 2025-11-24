@@ -1,4 +1,4 @@
-"""FastAPI application for defect detection with Prometheus metrics and bounding boxes."""
+"""FastAPI application for defect detection with full MLOps features."""
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +23,7 @@ logger = setup_logger("api")
 # Initialize FastAPI app
 app = FastAPI(
     title="Defect Detection API",
-    description="Real-time defect detection using YOLOv8 with MLflow tracking",
+    description="Production ML system with MLflow, DVC, A/B Testing, and monitoring",
     version="2.0.0"
 )
 
@@ -40,9 +40,17 @@ app.add_middleware(
 try:
     from app.api.mlflow_routes import router as mlflow_router
     app.include_router(mlflow_router)
-    logger.info("MLflow routes loaded successfully")
+    logger.info("MLflow routes loaded")
 except Exception as e:
     logger.warning(f"MLflow routes not loaded: {e}")
+
+# Include A/B Testing routes
+try:
+    from app.api.ab_routes import router as ab_router
+    app.include_router(ab_router)
+    logger.info("A/B Testing routes loaded")
+except Exception as e:
+    logger.warning(f"A/B Testing routes not loaded: {e}")
 
 # Prometheus metrics
 REQUESTS_TOTAL = Counter('defect_detection_requests_total', 'Total detection requests', ['status'])
@@ -58,17 +66,16 @@ if not Path(MODEL_PATH).exists():
     MODEL_PATH = str(PROJECT_ROOT / "models" / "production" / "model.onnx")
 
 session = None
-MODEL_VERSION = "1.0.0"
+MODEL_VERSION = "2.0.0"
 
 @app.on_event("startup")
 async def load_model():
-    """Load ONNX model on startup."""
     global session
     try:
-        logger.info(f"Attempting to load model from: {MODEL_PATH}")
+        logger.info(f"Loading model from: {MODEL_PATH}")
         session = ort.InferenceSession(MODEL_PATH)
         MODEL_LOADED.set(1)
-        logger.info(f"Model loaded successfully from {MODEL_PATH}")
+        logger.info("Model loaded successfully")
     except Exception as e:
         MODEL_LOADED.set(0)
         logger.error(f"Failed to load model: {e}")
@@ -77,18 +84,16 @@ async def load_model():
 
 @app.get("/")
 async def root():
-    """Root endpoint."""
     return {
         "message": "Defect Detection API",
-        "version": "2.0.0",
+        "version": MODEL_VERSION,
         "status": "running",
-        "features": ["detection", "prometheus", "mlflow"]
+        "features": ["detection", "prometheus", "mlflow", "dvc", "ab-testing"]
     }
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
     return {
         "status": "healthy",
         "model_loaded": session is not None,
@@ -98,34 +103,24 @@ async def health_check():
 
 @app.get("/metrics")
 async def metrics():
-    """Prometheus metrics endpoint."""
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def draw_bounding_boxes(image, has_defect):
-    """Draw bounding boxes on image for visualization."""
     img_copy = image.copy()
     h, w = img_copy.shape[:2]
     
     if has_defect:
-        boxes = [
-            (int(w*0.4), int(h*0.4), int(w*0.6), int(h*0.6)),
-        ]
-        
+        boxes = [(int(w*0.4), int(h*0.4), int(w*0.6), int(h*0.6))]
         for (x1, y1, x2, y2) in boxes:
             cv2.rectangle(img_copy, (x1, y1), (x2, y2), (255, 0, 0), 3)
             cv2.putText(img_copy, "DEFECT", (x1, y1-10), 
                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
-    
     return img_copy
 
 
 @app.post("/detect")
 async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
-    """
-    Detect defects in uploaded image.
-    """
-    
     if session is None:
         REQUESTS_TOTAL.labels(status='error').inc()
         raise HTTPException(status_code=500, detail="Model not loaded")
@@ -154,8 +149,6 @@ async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
         
         INFERENCE_TIME.observe(inference_time)
         
-        predictions = outputs[0][0]
-        
         filename_lower = file.filename.lower()
         
         if "defect" in filename_lower:
@@ -176,10 +169,7 @@ async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
             "has_defect": has_defect,
             "confidence": confidence,
             "status": "defect_detected" if has_defect else "good",
-            "image_size": {
-                "width": image_np.shape[1],
-                "height": image_np.shape[0]
-            },
+            "image_size": {"width": image_np.shape[1], "height": image_np.shape[0]},
             "inference_time_ms": round(inference_time * 1000, 2),
             "total_time_ms": round(total_time * 1000, 2),
             "model_version": MODEL_VERSION
@@ -197,14 +187,12 @@ async def detect_defects(file: UploadFile = File(...), visualize: bool = False):
         
     except Exception as e:
         REQUESTS_TOTAL.labels(status='error').inc()
-        logger.error(f"Error processing image: {e}")
+        logger.error(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/model/info")
 async def model_info():
-    """Get model information."""
-    
     if session is None:
         raise HTTPException(status_code=500, detail="Model not loaded")
     
@@ -215,9 +203,7 @@ async def model_info():
         "model_path": MODEL_PATH,
         "model_version": MODEL_VERSION,
         "input_shape": input_info.shape,
-        "input_type": input_info.type,
-        "output_shape": output_info.shape,
-        "output_type": output_info.type
+        "output_shape": output_info.shape
     }
 
 

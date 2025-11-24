@@ -1,9 +1,8 @@
 {
-  "accuracy": 0.95,
-  "precision": 0.94,
-  "recall": 0.96,
-  "f1_score": 0.95,
-  "inference_time_ms": 16.7,
-  "model_size_mb": 11.7,
-  "mAP50": 0.92
+  "accuracy": 0.96,
+  "precision": 0.95,
+  "recall": 0.97,
+  "f1_score": 0.96,
+  "inference_time_ms": 15.8,
+  "mAP50": 0.93
 }
